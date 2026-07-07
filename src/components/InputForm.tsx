@@ -30,6 +30,7 @@ export default function InputForm({
   onSubmit: (input: InsuranceInput) => void;
 }) {
   const [form, setForm] = useState<InsuranceInput>(defaults);
+  const [error, setError] = useState<string | null>(null);
 
   const update = <K extends keyof InsuranceInput>(
     key: K,
@@ -37,6 +38,27 @@ export default function InputForm({
   ) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const totalYears = form.paymentYears + form.deferralYears;
+
+  /** 送信前の検証。空欄(=0)や不正値のまま計算するとInfinity/NaNになるため弾く。 */
+  const handleSubmit = () => {
+    if (!Number.isFinite(form.paymentYears) || form.paymentYears < 1) {
+      return setError("払込期間は1年以上を入力してください。");
+    }
+    if (!Number.isFinite(form.deferralYears) || form.deferralYears < 0) {
+      return setError("据置期間は0年以上を入力してください。");
+    }
+    if (!Number.isFinite(form.returnRatio) || form.returnRatio <= 0) {
+      return setError("返戻率は0より大きい値を入力してください。");
+    }
+    if (!Number.isFinite(form.totalPremium) || form.totalPremium <= 0) {
+      return setError("払込保険料総額は0より大きい値を入力してください。");
+    }
+    if (!Number.isFinite(form.entryFxRate) || form.entryFxRate <= 0) {
+      return setError("加入時為替レートは0より大きい値を入力してください。");
+    }
+    setError(null);
+    onSubmit(form);
+  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
@@ -177,8 +199,14 @@ export default function InputForm({
         据置{form.deferralYears}年）
       </div>
 
+      {error && (
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <button
-        onClick={() => onSubmit(form)}
+        onClick={handleSubmit}
         className="mt-4 w-full bg-blue-600 text-white font-medium py-3 rounded-xl hover:bg-blue-700 transition-colors cursor-pointer"
       >
         分析する

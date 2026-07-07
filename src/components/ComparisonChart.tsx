@@ -125,7 +125,12 @@ export default function ComparisonChart({ input }: { input: InsuranceInput }) {
     return afterTaxReturnNormal(input.totalPremium, raw);
   };
 
-  const insuranceFinal = calcFinalAmount(insuranceRate, "insurance");
+  // 保険の税引後は、成長曲線の終点ではなく契約上の受取額(receivedAmount)を基準にする。
+  // これにより表の「税引前(=receivedAmount)」と基準が一致する。
+  const insuranceFinal = afterTaxReturnInsurance(
+    input.totalPremium,
+    receivedAmount
+  );
 
   const barData = [
     {

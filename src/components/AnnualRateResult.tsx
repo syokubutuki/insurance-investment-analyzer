@@ -21,6 +21,7 @@ import {
 } from "recharts";
 
 function fmt(n: number, digits = 2) {
+  if (!Number.isFinite(n)) return "—";
   return (n * 100).toFixed(digits) + "%";
 }
 function fmtYen(n: number) {

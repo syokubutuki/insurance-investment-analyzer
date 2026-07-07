@@ -27,37 +27,47 @@ export function calculateIRR(
     if (Math.abs(npv) < tolerance) return rate;
     if (dnpv === 0) return NaN;
     rate -= npv / dnpv;
+    if (!isFinite(rate)) return NaN;
   }
   return rate;
 }
 
-/** 月払いのキャッシュフロー配列を生成 */
+/**
+ * 月払いのキャッシュフロー配列を生成。
+ * 保険料は契約開始時点から各月初(index 0..paymentMonths-1)に払い込み、
+ * 満期金は運用終了時点(index totalMonths)に受け取る。
+ * ※満期を index totalMonths（配列長 totalMonths+1）に置くことで、
+ *   受取が1期早くなる off-by-one を回避している。
+ */
 export function buildMonthlyCashflows(
   monthlyPremium: number,
   paymentMonths: number,
   totalMonths: number,
   receivedAmount: number
 ): number[] {
-  const cfs: number[] = [];
-  for (let m = 0; m < totalMonths; m++) {
-    cfs.push(m < paymentMonths ? -monthlyPremium : 0);
+  const cfs: number[] = new Array(totalMonths + 1).fill(0);
+  for (let m = 0; m < paymentMonths; m++) {
+    cfs[m] = -monthlyPremium;
   }
-  cfs[totalMonths - 1] = (cfs[totalMonths - 1] || 0) + receivedAmount;
+  cfs[totalMonths] += receivedAmount;
   return cfs;
 }
 
-/** 年払いのキャッシュフロー配列を生成 */
+/**
+ * 年払いのキャッシュフロー配列を生成。
+ * 保険料は各年初(index 0..paymentYears-1)、満期金は満了時点(index totalYears)。
+ */
 export function buildYearlyCashflows(
   yearlyPremium: number,
   paymentYears: number,
   totalYears: number,
   receivedAmount: number
 ): number[] {
-  const cfs: number[] = [];
-  for (let y = 0; y < totalYears; y++) {
-    cfs.push(y < paymentYears ? -yearlyPremium : 0);
+  const cfs: number[] = new Array(totalYears + 1).fill(0);
+  for (let y = 0; y < paymentYears; y++) {
+    cfs[y] = -yearlyPremium;
   }
-  cfs[totalYears - 1] = (cfs[totalYears - 1] || 0) + receivedAmount;
+  cfs[totalYears] += receivedAmount;
   return cfs;
 }
 

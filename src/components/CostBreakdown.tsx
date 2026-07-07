@@ -61,10 +61,11 @@ export default function CostBreakdown({ input }: { input: InsuranceInput }) {
   const idealReturn = input.totalPremium * Math.pow(1 + assumedPredRate, totalYears);
   const hiddenCost = idealReturn - receivedAmount;
 
-  // 実質利回り
+  // 実質利回り（コストが受取を上回る極端なケースでは NaN を避けて -100% とする）
   const netReceived = receivedAmount - totalFxCost - surrenderCost;
   const netReturnRatio = netReceived / input.totalPremium;
-  const netAnnualRate = Math.pow(netReturnRatio, 1 / totalYears) - 1;
+  const netAnnualRate =
+    netReturnRatio > 0 ? Math.pow(netReturnRatio, 1 / totalYears) - 1 : -1;
 
   // コスト内訳のグラフデータ
   const costData = [
