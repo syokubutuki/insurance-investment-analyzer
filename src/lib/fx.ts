@@ -114,6 +114,42 @@ export function fxChangeDistribution(
   return results;
 }
 
+/**
+ * 日次レートから年率換算ボラティリティ（標準偏差）を算出。
+ * 対数収益率の標準偏差に√252（年間営業日数の目安）を掛ける金融の標準的手法。
+ */
+export function annualizedVolatility(rates: FxRate[]): number | null {
+  if (rates.length < 3) return null;
+  const logReturns: number[] = [];
+  for (let i = 1; i < rates.length; i++) {
+    const prev = rates[i - 1].rate;
+    const cur = rates[i].rate;
+    if (prev > 0 && cur > 0) logReturns.push(Math.log(cur / prev));
+  }
+  const n = logReturns.length;
+  if (n < 2) return null;
+  const mean = logReturns.reduce((s, r) => s + r, 0) / n;
+  const variance =
+    logReturns.reduce((s, r) => s + (r - mean) ** 2, 0) / (n - 1);
+  return Math.sqrt(variance) * Math.sqrt(252);
+}
+
+/**
+ * 過去の変動分布のうち、円建てで元本割れとなった割合。
+ * 円建て返戻率 = 為替変動率 × ドル建て返戻率 なので、
+ * 為替変動率が損益分岐変動率(= 1 / ドル建て返戻率)を下回ると元本割れ。
+ */
+export function lossProbability(
+  distribution: { changeRatio: number }[],
+  breakEvenChangeRatio: number
+): number {
+  if (distribution.length === 0) return 0;
+  const losses = distribution.filter(
+    (d) => d.changeRatio < breakEvenChangeRatio
+  ).length;
+  return losses / distribution.length;
+}
+
 /** 分布から統計値を算出 */
 export function fxStats(distribution: { changeRatio: number }[]) {
   if (distribution.length === 0) return null;

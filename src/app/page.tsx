@@ -110,7 +110,7 @@ export default function Home() {
 
       {/* フッター */}
       <footer className="mt-12 border-t border-gray-200 bg-white">
-        <div className="max-w-5xl mx-auto px-4 py-6 text-center text-xs text-gray-400">
+        <div className="max-w-5xl mx-auto px-4 py-6 text-center text-xs text-gray-500">
           <p>
             本ツールは投資判断のための参考情報を提供するものであり、
             特定の金融商品の推奨・勧誘を目的としたものではありません。
